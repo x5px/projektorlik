@@ -124,8 +124,13 @@ for i in entries:
         else:
             for j in range(abs(month_discrepancy)):
                 driver.find_element("class name", "fc-next-button").click()
+    
+    # if len(driver.find_elements("class name", "fc-event-title")) > 0:
+    #     ctypes.windll.user32.MessageBoxW(0, "W tym miesiącu są już zapisane zajęcia. Usuń je i spróbuj ponownie.", "Projekt Orlik", 1)
+    #     driver.close()
+    #     exit()
 
-    time.sleep(2)
+    time.sleep(1)
     # Wypełnij formularz
 
     # Wybierz odpowiedni dzień
@@ -133,7 +138,7 @@ for i in entries:
     button_name = cur_date.strftime('%Y-%m-%d')
     button = driver.find_element("xpath", f'//td[@data-date="{button_name}"]') 
     button.click()
-    time.sleep(0.5)
+    time.sleep()
 
     # Wypełnij dane
     # https://example.com/form_layout.jpg
@@ -179,7 +184,7 @@ for i in entries:
     # Miejsce zajęć
     if(options['miejsce'] != 'Boisko piłkarskie'):
         rodzaj = driver.find_element("xpath", '//button[@data-id="idlokalizacja"]').click()
-        time.sleep(0.5)
+        time.sleep(0.2)
         driver.find_element("xpath", f"//span[@class='text'][contains(.,'{options['miejsce']}')]").click()
 
     # Grupy wiekowe
@@ -192,7 +197,7 @@ for i in entries:
 
     # Dyscyplina
     driver.find_element("xpath", '//button[@data-id="iddyscypliny"]').click()
-    time.sleep(0.5)
+    time.sleep(0.2)
     driver.find_element("xpath", f"//span[@class='text'][contains(.,'{options['dyscyplina']}')]").click()
 
     # Zapisz
@@ -201,4 +206,5 @@ for i in entries:
     time.sleep(0.5)
     driver.find_element("xpath", "//html/body[@class='sidebar-mini modal-open']/div[@class='wrapper']/div[@class='content-wrapper ']/div[@class='content']/div[@class='container-fluid']/div[@id='dialogConfirm']/div[@class='modal-dialog modal-dialog-centered']/div[@class='modal-content']/div[@class='modal-footer']/button[@id='dialogConfirmButton']").click()
 
-ctypes.windll.user32.MessageBoxW(0, "Projekt Orlik", "Program zakończony pomyślnie.", 1)
+driver.close()
+ctypes.windll.user32.MessageBoxW(0, "Program zakończony pomyślnie.", "Projekt Orlik", 1)
