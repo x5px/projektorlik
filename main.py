@@ -34,17 +34,20 @@ def parseData():
                 if lev.distance(i, split_second_space(word).capitalize()) < 3:
                     return i
             os.remove('out.docx')
-            raise Exception(word + 'nie jest na liście sportów. Zmień harmonogram.')
+            raise ValueError(word + 'nie jest na liście sportów. Zmień harmonogram.')
 
     word = win32com.client.Dispatch("Word.Application")
     word.visible = 0
 
-    for i, doc in enumerate(glob.iglob("*.doc")):
-        in_file = os.path.abspath(doc)
-        wb = word.Documents.Open(in_file)
-        out_file = os.path.abspath("out.docx".format(i))
-        wb.SaveAs2(out_file, FileFormat=16) # file format for docx
-        wb.Close()
+    try:
+        for i, doc in enumerate(glob.iglob("*.doc")):
+            in_file = os.path.abspath(doc)
+            wb = word.Documents.Open(in_file)
+            out_file = os.path.abspath("out.docx".format(i))
+            wb.SaveAs2(out_file, FileFormat=16) # file format for docx
+            wb.Close()
+    except OSError or FileNotFoundError:
+        raise FileNotFoundError('Nie znaleziono pliku harmonogramu. Upewnij się, że plik znajduje się w tym samym folderze co plik main.py.')
 
     word.Quit()
 
@@ -73,12 +76,15 @@ def parseData():
             # keys to values for this row
             row_data = dict(zip(keys, text))
             if(row_data['Godziny zajęć'] not in ['-', '']):
-                data.append([row_data['Data'][:10], row_data['Liczba godzin'], row_data['Godziny zajęć'], spellcheck(row_data['Tematyka zajęć'])])
+                data.append([row_data['Data'][:10], row_data['Liczba godzin'], row_data['Godziny zajęć'], row_data['Tematyka zajęć'], spellcheck(row_data['Tematyka zajęć'])])
 
     os.remove('out.docx')
     if(sum([int(i[1]) for i in data]) != 50):
-        raise Exception('Suma godzin nie wynosi 50. Zmień harmonogram.')
+        # print(sum([int(i[1]) for i in data]))
+        raise AssertionError('Suma godzin nie wynosi 50. Zmień harmonogram.')
     else:
         return data
 
-print(parseData())
+with open('selenium/data.txt', 'w+', encoding='utf-8') as f:
+    for i in parseData():
+        f.write(i[0] + ';' + i[1] + ';' + i[2] + ';' + i[3] + ';' + i[4] + '\n')

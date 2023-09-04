@@ -1,15 +1,15 @@
-01.09.2023 4 15-19 Piłka nożna
-03.09.2023 6 12-18 Wiele dyscyplin
-04.09.2023 3 15-18 Piłka nożna
-06.09.2023 3 15-18 Piłka nożna
-08.09.2023 4 15-19 Piłka nożna
-10.09.2023 2 14-16 Wiele dyscyplin
-18.09.2023 3 15-18 Piłka nożna
-20.09.2023 3 15-18 Piłka nożna
-21.09.2023 4 15-19 Wiele dyscyplin
-22.09.2023 4 15-19 Piłka nożna
-24.09.2023 4 15-19 Wiele dyscyplin
-25.09.2023 2 16-18 Piłka nożna
-27.09.2023 2 16-18 Piłka nożna
-28.09.2023 3 15-18 Piłka nożna
-29.09.2023 3 15-18 Wiele dyscyplin
+01.10.2023;4;15-19;Piłka Nożna;Piłka nożna
+03.10.2023;6;12-18;Wiele dyscyplin;Wiele dyscyplin
+04.10.2023;3;15-18;Piłka nożna;Piłka nożna
+06.10.2023;3;15-18;Piłka Nożna;Piłka nożna
+08.10.2023;4;15-19;Piłka nożna tenis;Piłka nożna
+10.10.2023;2;14-16;Wiele dtscyplin;Wiele dyscyplin
+18.10.2023;3;15-18;Piłka nożna;Piłka nożna
+20.10.2023;3;15-18;Piłka nożna koszykówka;Piłka nożna
+21.10.2023;4;15-19;Wiele dyscyplin;Wiele dyscyplin
+22.10.2023;4;15-19;Piłka nożna;Piłka nożna
+24.10.2023;4;15-19;Wiele dyscyplin;Wiele dyscyplin
+25.10.2023;2;16-18;Piłka nożna;Piłka nożna
+27.10.2023;2;16-18;Piłka nożna;Piłka nożna
+28.10.2023;3;15-18;Piłka nożna;Piłka nożna
+29.10.2023;3;15-18;Wiele dyscyplin;Wiele dyscyplin
