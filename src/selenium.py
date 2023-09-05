@@ -1,5 +1,6 @@
 from selenium import webdriver
-from selenium.webdriver.support.ui import Select
+from selenium.webdriver.chrome.service import Service as ChromeService
+from selenium.webdriver.firefox.service import Service as FirefoxService
 import time
 from datetime import datetime
 import re
@@ -61,9 +62,6 @@ def sumSplit(left,right=[],difference=0):
         solution = sumSplit(left, right, targetDiff)
         if solution: return solution 
 
-def genNewTrening(entries, timediff):
-    entries.append(entries[-1][0], timediff, '10-' + str(timediff), random.choice(['Mini turniej'], ['Gry i zabawy'], ['Trening']), 'Wiele dyscyplin')
-
 miesiace = ['styczeń', 'luty', 'marzec', 'kwiecień', 'maj', 'czerwiec', 'lipiec', 'sierpień', 'wrzesień', 'październik', 'listopad','grudzień']
 
 with open('auth.txt', 'r') as f:
@@ -84,19 +82,15 @@ jst = sumSplit(liczba_godz)[1]
 diff = sumSplit(liczba_godz)[2]
 
 if diff != 0:
-    # genNewTrening(entries, diff)
-    pass
-
-# test area
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-
+    entries.append(entries[-1][0], diff, '10-' + str(diff), random.choice(['Mini turniej'], ['Gry i zabawy'], ['Trening']), 'Wiele dyscyplin')
+    if(sum(msit) > sum(jst)):
+        msit.append(diff)
+    else:
+        jst.append(diff)
 
 # Start driver
-chrome_options = Options()
-chrome_options.add_experimental_option("detach", False) # True to keep window open
-service = Service(executable_path=r'../src/drivers/chromedriver.exe')
-driver = webdriver.Chrome(service=service, options=chrome_options)
+service = ChromeService('../src/drivers/chromedriver.exe')
+driver = webdriver.Chrome(service=service)
 driver.get('https://system.programorlik.pl/kalendarz/kalendarz')
 
 time.sleep(1)
@@ -114,6 +108,7 @@ cur_month = miesiace.index(re.sub(r'[^a-zA-Ząęłśćóńź]+', r'', driver.fin
 
 data_date = datetime.strptime(data[0][0:10], '%d.%m.%Y')
 month_discrepancy = data_date.month - cur_month-1 # różnica między obecnym miesiącem a miesiącem zapisanym w harmonogramie
+firstRun = True
 
 # Wybierz odpowiedni miesiąc
 for i in entries:
@@ -125,10 +120,10 @@ for i in entries:
             for j in range(abs(month_discrepancy)):
                 driver.find_element("class name", "fc-next-button").click()
     
-    # if len(driver.find_elements("class name", "fc-event-title")) > 0:
-    #     ctypes.windll.user32.MessageBoxW(0, "W tym miesiącu są już zapisane zajęcia. Usuń je i spróbuj ponownie.", "Projekt Orlik", 1)
-    #     driver.close()
-    #     exit()
+    if len(driver.find_elements("class name", "fc-event-title")) > 0 and firstRun:
+        ctypes.windll.user32.MessageBoxW(0, "W tym miesiącu są już zapisane zajęcia. Usuń je i spróbuj ponownie.", "Projekt Orlik", 1)
+        driver.close()
+        exit()
 
     time.sleep(1)
     # Wypełnij formularz
@@ -205,6 +200,7 @@ for i in entries:
     driver.find_element("xpath", "//div[@class='bottom_container']/button[@id='btn_next12']").click()
     time.sleep(0.5)
     driver.find_element("xpath", "//html/body[@class='sidebar-mini modal-open']/div[@class='wrapper']/div[@class='content-wrapper ']/div[@class='content']/div[@class='container-fluid']/div[@id='dialogConfirm']/div[@class='modal-dialog modal-dialog-centered']/div[@class='modal-content']/div[@class='modal-footer']/button[@id='dialogConfirmButton']").click()
+    firstRun = False
 
 driver.close()
 ctypes.windll.user32.MessageBoxW(0, "Program zakończony pomyślnie.", "Projekt Orlik", 1)
