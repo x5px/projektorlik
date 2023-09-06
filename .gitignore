@@ -162,3 +162,4 @@ cython_debug/
 selenium/auth.txt
 auth.txt
 *.doc*
+sporty.txt
