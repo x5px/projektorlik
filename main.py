@@ -7,19 +7,17 @@ import os
 import win32com.client as win32
 from win32com.client import constants
 from docx import Document
-import Levenshtein as lev
 import re
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.firefox.service import Service as FirefoxService
-from selenium.webdriver.chrome.options import Options as ChromeOptions
-from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from time import sleep
 from datetime import datetime
 from random import randint, choice
 import ctypes
 import sys
 import subprocess
+from difflib import get_close_matches
 
 def crash(error_msg, driver=None):
     if driver != None:
@@ -127,9 +125,9 @@ def parseData(filename):
         if split_second_space(word).capitalize() in sporty:
             return split_second_space(word).capitalize()
         else:
-            for i in sporty:
-                if lev.distance(i, split_second_space(word).capitalize()) < 3:
-                    return i
+            if len(get_close_matches(split_second_space(word).capitalize(), sporty)) > 0:
+                #print(f'Znaleziono podobny sport: {get_close_matches(split_second_space(word).capitalize(), sporty, n=1, cutoff=0.4)[0]}')
+                return get_close_matches(split_second_space(word).capitalize(), sporty, n=1, cutoff=0.4)[0]
             os.remove('out.docx')
             crash('Projekt Orlik', f'Nie znaleziono sportu "{word}". Upewnij że prawidłowo wpisałeś nazwę sportu, albo dodaj go do sporty.txt.')
 
@@ -166,9 +164,6 @@ def parseData(filename):
 
 # Selenium
 def fillPage(data):
-    if(sum([int(i[1]) for i in data]) != 50):
-        # print(sum([int(i[1]) for i in data]))
-        crash('Suma godzin jest nie jest równa 50. Zmień harmonogram.')
     def genOptions(sportType):
         options = { # szablon formularza
         'rodzaj' : 'Trening',
@@ -231,25 +226,25 @@ def fillPage(data):
 
     liczba_godz = []
     for i in data:
-        liczba_godz.append(int(i[1]))
+        liczba_godz.append(float(i[1].replace(',', '.')))
+
+    if(sum(liczba_godz) != 50):
+        # print(sum([int(i[1]) for i in data]))
+        crash('Suma godzin jest nie jest równa 50. Zmień harmonogram.')
 
     msit = sumSplit(liczba_godz)[0]
     jst = sumSplit(liczba_godz)[1]
     diff = sumSplit(liczba_godz)[2]
 
-    #print(f"MSiT: {msit} | JST: {jst} | Diff: {diff}")
-
     if diff != 0:
-        data.append(data[-1][0], diff, '10-' + str(diff), choice(['Mini turniej'], ['Gry i zabawy'], ['Trening']), 'Wiele dyscyplin')
+        data.append(data[-1][0], diff, '10-' + str(10+diff), choice(['Mini turniej'], ['Gry i zabawy'], ['Trening']), 'Wiele dyscyplin')
         if(sum(msit) > sum(jst)):
             msit.append(diff)
         else:
             jst.append(diff)
 
     # Start driver
-    options = ChromeOptions()
-    options.add_argument = ('--log-level=WARNING')
-    service = ChromeService(resource_path('drivers/chromedriver.exe'), options=options)
+    service = ChromeService(resource_path('drivers/chromedriver.exe'))
     driver = webdriver.Chrome(service=service)
     driver.get('https://system.programorlik.pl/kalendarz/kalendarz')
 
@@ -327,7 +322,7 @@ def fillPage(data):
             driver.find_element("id", "godzina_do").send_keys(godziny[1])
 
             # Finansowane przez
-            l_godz = int(i[1])
+            l_godz = float(i[1])
             if l_godz in msit:
                 driver.find_element("id", "IDFINANSOWANIE1").click() # MSiT
                 msit.remove(l_godz)
@@ -408,7 +403,7 @@ if os.path.exists('projektorlik_data') == False:
     os.mkdir('projektorlik_data')
 
 if os.path.exists('projektorlik_data/sporty.txt') == False:
-    with open('src/sporty.txt', 'r', encoding='utf-8') as f:
+    with open(resource_path('bundle/sporty.txt'), 'r', encoding='utf-8') as f:
         with open('projektorlik_data/sporty.txt', 'w+', encoding='utf-8') as f2:
             f2.write(f.read())
 
