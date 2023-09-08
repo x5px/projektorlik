@@ -18,11 +18,12 @@ import ctypes
 import sys
 import subprocess
 from difflib import get_close_matches
+import json
+import shutil
 
 def crash(error_msg, driver=None):
     if driver != None:
         driver.quit()
-    root.iconify()
     mb.showerror('Projekt Orlik', error_msg)
     root.destroy()
     exit()
@@ -56,7 +57,7 @@ def showLoading(filename):
     # run test_function in another thread
     t = Thread(target=parseData, args=(filename,))
     t.start()
-    for _ in range(5):
+    for _ in range(6):
         root.update_idletasks()
         pb.step(20)
         root.after(1000)
@@ -109,10 +110,7 @@ def save_as_docx(path):
 
 def parseData(filename):
     global data
-    sporty = []
-    with open('projektorlik_data/sporty.txt', 'r', encoding='utf-8') as f:
-        for line in f:
-            sporty.append(line[:-1])
+    sporty = settings['sporty']
 
     pattern = r'^([\w]+ [\w]+)' # split second space
     def split_second_space(word):
@@ -221,8 +219,8 @@ def fillPage(data):
 
     miesiace = ['styczeń', 'luty', 'marzec', 'kwiecień', 'maj', 'czerwiec', 'lipiec', 'sierpień', 'wrzesień', 'październik', 'listopad','grudzień']
 
-    with open('projektorlik_data/auth.txt', 'r') as f:
-        auth = f.read().split(':')
+    with open('projektorlik_data/settings.json', 'r') as f:
+        auth = [settings['auth']['email'], settings['auth']['password']]
 
     liczba_godz = []
     for i in data:
@@ -244,8 +242,15 @@ def fillPage(data):
             jst.append(diff)
 
     # Start driver
-    service = ChromeService(resource_path('drivers/chromedriver.exe'))
-    driver = webdriver.Chrome(service=service)
+    # service = ChromeService(resource_path('drivers/chromedriver.exe'))
+    # driver = webdriver.Chrome(service=service)
+
+    if(settings['auth']['browser'] == 'chrome'):
+        service = ChromeService(resource_path('drivers/chromedriver.exe'))
+        driver = webdriver.Chrome(service=service)
+    else:
+        service = FirefoxService(resource_path('drivers/geckodriver.exe'), log_output=os.devnull)
+        driver = webdriver.Firefox(service=service)
     driver.get('https://system.programorlik.pl/kalendarz/kalendarz')
 
     sleep(1)
@@ -364,18 +369,23 @@ def fillPage(data):
             sleep(0.5)
             driver.find_element("xpath", "//html/body[@class='sidebar-mini modal-open']/div[@class='wrapper']/div[@class='content-wrapper ']/div[@class='content']/div[@class='container-fluid']/div[@id='dialogConfirm']/div[@class='modal-dialog modal-dialog-centered']/div[@class='modal-content']/div[@class='modal-footer']/button[@id='dialogConfirmButton']").click()
  
-        except Exception as e:
+        except Exception:
             crash('Wystąpił błąd strony. Usuń zajęcia i spróbuj ponownie.', driver)
 
+    sleep(5)
     driver.quit()
     root.iconify()
     mb.showinfo('Zakończono', 'Program zakończył działanie pomyślnie. Możesz teraz wygenerować rozliczenie.')
     root.destroy()
     exit()
 
-def savePassword(email, password):
-    with open('projektorlik_data/auth.txt', 'w') as f:
-        f.write(f'{email}:{password}')
+def saveUserInfo(email, password, browser):
+    with open('projektorlik_data/settings.json', 'w+', encoding='utf-8') as f:
+        settings['auth']['email'] = email
+        settings['auth']['password'] = password
+        settings['auth']['browser'] = browser
+        json.dump(settings, f, indent=4)
+    
     mb.showinfo('Projekt Orlik', 'Zapisano dane logowania.')
 
     for widget in root.winfo_children():
@@ -401,11 +411,10 @@ def savePassword(email, password):
 # Unpacker
 if os.path.exists('projektorlik_data') == False:
     os.mkdir('projektorlik_data')
+    shutil.move(resource_path('settings.json'), 'projektorlik_data/settings.json')
 
-if os.path.exists('projektorlik_data/sporty.txt') == False:
-    with open(resource_path('bundle/sporty.txt'), 'r', encoding='utf-8') as f:
-        with open('projektorlik_data/sporty.txt', 'w+', encoding='utf-8') as f2:
-            f2.write(f.read())
+with open('projektorlik_data/settings.json', 'r', encoding='utf-8') as f:
+    settings = json.load(f)
 
 # GUI
 root = tk.Tk()
@@ -421,7 +430,7 @@ root.geometry("400x200")
 root.resizable(False, False)
 root.eval('tk::PlaceWindow . center')
 
-if(os.path.exists('projektorlik_data/auth.txt') == False):
+if(settings['auth']['email'] == '' or settings['auth']['password'] == '' or settings['auth']['browser'] == ''):
     login = tk.Label(root, text="Zaloguj się do systemu Program Orlik")
     login.config(font=("Calibri", 12))
     login.grid(row=0, column=0, columnspan=2, pady=10, padx=10)
@@ -431,7 +440,13 @@ if(os.path.exists('projektorlik_data/auth.txt') == False):
     a1.grid(row = 1,column = 1)
     b1 = tk.Entry(root, show="*")
     b1.grid(row = 2,column = 1)
-    submit = tk.Button(root ,text = "Zapisz", command=lambda: savePassword(a1.get(), b1.get())).grid(row = 4,column = 0)
+
+    # Select browser
+    browser = tk.StringVar(root, "chrome", "browser")
+    c1 = tk.Radiobutton(root, text="Chrome", variable=browser, value="chrome").grid(row=3, column=0)
+    c2 = tk.Radiobutton(root, text="Firefox", variable=browser, value="firefox").grid(row=3, column=1)
+
+    submit = tk.Button(root ,text = "Zapisz", command=lambda: saveUserInfo(a1.get(), b1.get(), browser.get())).grid(row = 4,column = 0)
 else:
     l = tk.Label(root, text="Wybierz harmonogram")
     l.config(font=("Calibri", 20))

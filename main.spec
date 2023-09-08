@@ -8,7 +8,7 @@ a = Analysis(
     ['main.py'],
     pathex=[],
     binaries=[('drivers/chromedriver.exe', './drivers'), ('drivers/geckodriver.exe', './drivers')],
-    datas=[('bundle/sporty.txt', './bundle'), ('icon.ico', '.'),],
+    datas=[('settings.json', '.'), ('icon.ico', '.'),],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
